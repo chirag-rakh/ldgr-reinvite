@@ -177,6 +177,7 @@ class Ldgr {
 
 		$this->loader->add_filter( 'ldgr_filter_group_registration_tab_contents', $plugin_public, 'my_add_button_to_enrolled_users_tab', 20, 2 );
 
+		$this->loader->add_action( 'wp_ajax_bulk_reinvite', $plugin_public, 'handle_bulk_reinvite' );
 	}
 
 	/**

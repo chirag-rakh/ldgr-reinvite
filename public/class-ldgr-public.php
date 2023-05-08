@@ -112,13 +112,18 @@ class Ldgr_Public {
 	}
 
 	function my_add_button_to_enrolled_users_tab( $tab_contents, $group_id ) {
-		echo(plugin_dir_path( dirname( __FILE__ ) ));
-		// Check if we're on the enrolled users tab
+		
+		// Assign the new path for template override
 		$tab_contents[0]['template'] = plugin_dir_path( dirname( __FILE__ ) ) . '/modules/templates/ldgr-group-users/tabs/enrolled-users-tab.template.php';
-			// Add the button HTML to the tab content
-			
 		
 		return $tab_contents;
+	}
+
+	function handle_bulk_reinvite() {
+		$user_ids  = filter_input( INPUT_POST, 'user_ids', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+		$group_ids = filter_input( INPUT_POST, 'group_ids', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+
+		var_dump($user_ids);
 	}
 
 
