@@ -101,29 +101,152 @@ class Ldgr_Public {
 	}
 
 
-
-	function my_custom_button() {
-		?>
-		<!-- <div id="wdm_group_wrapper">
-			<input type="button" id="bulk_reinvite" value="Bulk Re-invite">
-		</div> -->
-		
-		<?php
-	}
-
 	function my_add_button_to_enrolled_users_tab( $tab_contents, $group_id ) {
 		
 		// Assign the new path for template override
+		if(in_array("enrolled-users", $tab_contents[0]))
 		$tab_contents[0]['template'] = plugin_dir_path( dirname( __FILE__ ) ) . '/modules/templates/ldgr-group-users/tabs/enrolled-users-tab.template.php';
 		
 		return $tab_contents;
 	}
 
-	function handle_bulk_reinvite() {
-		$user_ids  = filter_input( INPUT_POST, 'user_ids', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-		$group_ids = filter_input( INPUT_POST, 'group_ids', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+	public function handle_bulk_reinvite() {
+		
+		$return    = array();
+		$user_ids  = filter_input( INPUT_POST, 'user_id', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+		$group_ids = filter_input( INPUT_POST, 'group_id', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+		
+		if ( ! is_array( $user_ids ) || empty( $user_ids ) ) {
+			echo json_encode( array( 'error' => __( 'Oops Something went wrong', 'wdm_ld_group' ) ) );
+			die();
+		}
+		
+		
+		foreach ( $user_ids as $key => $user_id ) {
+			
+			$return[$user_id] = $this->send_reinvite_mail($user_id, $group_ids[ $key ]);
+			if($return[$user_id] == true ){
+				$msg .= $user_id. ", ";
+			}
+		}
+		echo json_encode( array( 'success' => "Sent successfully to: $msg") );
+			die();
+	}
 
-		var_dump($user_ids);
+	public function send_reinvite_mail($user_ids, $group_ids) {
+
+		if ( is_user_logged_in() ) {
+			if ( learndash_is_group_leader_user( get_current_user_id() ) || learndash_is_group_leader_user( get_current_user_id() ) || current_user_can( 'manage_options' ) ) {
+				$admin_group_ids = learndash_get_administrators_group_ids( get_current_user_id() );
+				$user_id         = $user_ids;
+				$group_id        = $group_ids;
+				
+				if ( ! in_array( $group_id, $admin_group_ids ) ) {
+					echo json_encode( array( 'error' => __( 'You are not the owner of this group', 'wdm_ld_group' ) ) );
+					die();
+				}
+				if ( '' != $user_id && '' != $group_id ) {
+					// Fetch enable/disable email setting
+					
+					$wdm_gr_reinvite_enable = get_option( 'wdm_gr_reinvite_enable' );
+					if ( apply_filters( 'wdm_send_reinvite_email_status', true, $group_id ) && 'off' != $wdm_gr_reinvite_enable ) {
+						$user_data   = get_user_by( 'id', $user_id );
+						$group_title = get_the_title( $group_id );
+						$leader_data = get_user_by( 'id', get_current_user_id() );
+
+						
+
+						$user_login = $user_data->user_login;
+
+						// Calculation for Reset Password link.
+						global $wpdb;
+						$key       = get_password_reset_key( $user_data );
+						$reset_arg = array(
+							'action' => 'rp',
+							'key'    => $key,
+							'login'  => rawurlencode( $user_login ),
+						);
+
+						$reset_password_link = add_query_arg( $reset_arg, network_site_url( 'wp-login.php', 'login' ) );
+
+						// fetch enrolled courses.
+						$courses         = learndash_group_enrolled_courses( $group_id, true );
+						$enrolled_course = array();
+						foreach ( $courses as $key => $value ) {
+							$enrolled_course[] = get_the_title( $value );
+							$url               = get_permalink( $value );
+							unset( $key );
+						}
+
+						
+
+						$tsub = get_option( 'wdm-reinvite-sub' );
+						if ( empty( $tsub ) ) {
+							$tsub = WDM_REINVITE_SUB;
+						}
+						$subject = stripslashes( $tsub );
+						$subject = str_replace( '{group_title}', get_the_title( $group_id ), $subject );
+						$subject = str_replace( '{site_name}', get_bloginfo(), $subject );
+						$subject = str_replace( '{user_first_name}', ucfirst( $user_data->first_name ), $subject );
+						$subject = str_replace( '{user_last_name}', ucfirst( $user_data->last_name ), $subject );
+						$subject = str_replace( '{user_email}', $user_data->user_email, $subject );
+						$subject = str_replace( '{reset_password}', $reset_password_link, $subject );
+						//$subject = str_replace( '{course_list}', $this->get_course_list_html( $enrolled_course, $group_id, $user_id ), $subject );
+						$subject = str_replace( '{group_leader_name}', ucfirst( strtolower( $leader_data->first_name ) ) . ' ' . ucfirst( strtolower( $leader_data->last_name ) ), $subject );
+						$subject = str_replace( '{login_url}', wp_login_url(), $subject );
+						$subject = apply_filters( 'wdm_reinvite_email_subject', $subject, $group_id, get_current_user_id(), $user_id );
+						
+						$tbody = get_option( 'wdm-reinvite-body' );
+						if ( empty( $tbody ) ) {
+							$tbody = WDM_REINVITE_BODY;
+						}
+
+						
+
+						$body = stripslashes( $tbody );
+						// $body = $reset_password_link;
+						$body = str_replace( '{group_title}', get_the_title( $group_id ), $body );
+						$body = str_replace( '{site_name}', get_bloginfo(), $body );
+						$body = str_replace( '{user_first_name}', ucfirst( $user_data->first_name ), $body );
+						$body = str_replace( '{user_last_name}', ucfirst( $user_data->last_name ), $body );
+						$body = str_replace( '{user_email}', $user_data->user_email, $body );
+						$body = str_replace( '{reset_password}', $reset_password_link, $body );
+						//$body = str_replace( '{course_list}', $this->get_course_list_html( $enrolled_course, $group_id, $user_id ), $body );
+						$body = str_replace( '{group_leader_name}', ucfirst( strtolower( $leader_data->first_name ) ) . ' ' . ucfirst( strtolower( $leader_data->last_name ) ), $body );
+						$body = str_replace( '{login_url}', wp_login_url(), $body );
+
+						$body = apply_filters( 'wdm_reinvite_email_body', $body, $group_id, get_current_user_id(), $user_id );
+
+						ldgr_send_group_mails(
+							$user_data->user_email,
+							$subject,
+							$body,
+							array(),
+							array(),
+							array(
+								'email_type' => 'WDM_REINVITE_BODY',
+								'group_id'   => $group_id,
+							)
+						);
+						
+
+						/* echo json_encode(
+							array(
+								'success' => __( 'Re Invitation mail has been sent successfully.', 'wdm_ld_group' ),
+							)
+						); */
+						return true;
+					}
+				} else {
+					echo json_encode( array( 'error' => __( 'Oops Something went wrong', 'wdm_ld_group' ) ) );
+					die();
+				}
+			} else {
+				echo json_encode( array( 'error' => __( "You don't have privilege to do this action", 'wdm_ld_group' ) ) );
+			}
+		} else {
+			echo json_encode( array( 'error' => __( "You don't have privilege to do this action", 'wdm_ld_group' ) ) );
+		}
 	}
 
 

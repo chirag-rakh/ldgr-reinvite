@@ -2,3 +2,28 @@
  * All of the CSS for your public-facing functionality should be
  * included in this file.
  */
+
+ input#bulk_reinvite {
+    margin-bottom: 10px;
+    float: right;
+    border-radius: 3px;
+    background-color: transparent;
+    color: #444;
+    box-shadow: none;
+    border: 1px solid;
+    padding: 11px 19px;
+    line-height: 1;
+    font-size: 14px;
+}
+
+#wdm_group_wrapper #bulk_reinvite, #wdm_group_wrapper #wdm_group_length{
+    float: right;
+}
+
+#wdm_group_wrapper #bulk_reminvite, #wdm_group_wrapper #wdm_group_length{
+    float: right;
+}
+
+#wdm_group_wrapper #bulk_reinvite{
+    margin-left: 44px;
+  }

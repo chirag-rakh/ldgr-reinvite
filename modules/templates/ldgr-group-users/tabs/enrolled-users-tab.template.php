@@ -37,8 +37,10 @@
 			</div>
 		</div>
 	<?php endif; ?>
+	<div id="wdm_group_wrapper" class="dataTables_wrapper no-footer">
 	<input type='button' id='bulk_remove' value='<?php esc_html_e( 'Bulk Remove', 'wdm_ld_group' ); ?>'>
 	<input type='button' id='bulk_reinvite' value='<?php esc_html_e( 'Bulk Re-Invite', 'wdm_ld_group' ); ?>'>
+	</div>
 	<table id='wdm_group'>
 		<thead>
 			<tr>

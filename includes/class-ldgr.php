@@ -169,11 +169,10 @@ class Ldgr {
 	private function define_public_hooks() {
 
 		$plugin_public = new Ldgr_Public( $this->get_plugin_name(), $this->get_version() );
-
+		
+		
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
-
-		$this->loader->add_action('ldgr_action_before_group_tab_1', $plugin_public, 'my_custom_button');
 
 		$this->loader->add_filter( 'ldgr_filter_group_registration_tab_contents', $plugin_public, 'my_add_button_to_enrolled_users_tab', 20, 2 );
 

@@ -6,17 +6,20 @@ jQuery(document).on('click', '#bulk_reinvite', function(e) {
             return false;
         }
 
+		//jQuery('#wdm_group_wrapper').prepend(jQuery('wdm_group_length'));
+
+		var user_ids = [];
+		var group_ids = [];
+	
+
         jQuery('#wdm_group tbody input[type="checkbox"]:checked').each(function(){
-            if (jQuery(this).closest('td').siblings('td.ldgr-actions').find('a').hasClass('request_sent')) {
-                return;
-            }
-
-            jQuery(this).closest('td.select_action').siblings('td.ldgr-actions .dashicons-update').removeClass('hide');
-
+			
             user_ids.push(jQuery(this).data('user_id'));
             group_ids.push(jQuery(this).data('group_id'));
-        });
 
+			
+        });
+		alert(user_ids);
 
         if (user_ids.length === 0) {
             return false;
@@ -25,6 +28,7 @@ jQuery(document).on('click', '#bulk_reinvite', function(e) {
         if (group_ids.length === 0) {
             return false;
         }
+        //alert(wdm_data.ajaxurl);
 
         jQuery.ajax({
             type: "post",
@@ -32,26 +36,24 @@ jQuery(document).on('click', '#bulk_reinvite', function(e) {
             url: wdm_data.ajaxurl,
             data: {
                 action: 'bulk_reinvite',
-                user_ids: user_ids,
-                group_ids: group_ids
+                user_id: user_ids,
+                group_id: group_ids
             },
             timeout: 30000,
-            success: function(response) {
-                jQuery.each(response, function(id, value) {
-                    jQuery.each(value, function(status, message) {
-                        switch (status) {
+           success: function(response) {
+                    jQuery.each(response, function(j, k) {
+                        switch (j) {
                             case 'success':
-                                
+                                alert(k);
+                                jQuery('#wdm_ajax_loader').remove();
                                 break;
                             case 'error':
-                                
+                                alert(k);
+                                jQuery('#wdm_ajax_loader').remove();
                                 break;
                         }
                     });
-                });
-                wdm_datatable.draw(false);
-                jQuery('#wdm_group thead input[name="select_all"]').attr('checked', false);
-            }
+                }
         });
 
     }); 
