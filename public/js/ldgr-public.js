@@ -6,8 +6,6 @@ jQuery(document).on('click', '#bulk_reinvite', function(e) {
             return false;
         }
 
-		//jQuery('#wdm_group_wrapper').prepend(jQuery('wdm_group_length'));
-
 		var user_ids = [];
 		var group_ids = [];
 	
@@ -19,7 +17,7 @@ jQuery(document).on('click', '#bulk_reinvite', function(e) {
 
 			
         });
-		alert(user_ids);
+		//alert(user_ids);
 
         if (user_ids.length === 0) {
             return false;

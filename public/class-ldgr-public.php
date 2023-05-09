@@ -116,6 +116,9 @@ class Ldgr_Public {
 		$user_ids  = filter_input( INPUT_POST, 'user_id', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
 		$group_ids = filter_input( INPUT_POST, 'group_id', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
 		
+		$success = "Re-invitation mail has been sent successfully to:";
+		$failed = "Failed to re-invite:";
+
 		if ( ! is_array( $user_ids ) || empty( $user_ids ) ) {
 			echo json_encode( array( 'error' => __( 'Oops Something went wrong', 'wdm_ld_group' ) ) );
 			die();
@@ -126,10 +129,22 @@ class Ldgr_Public {
 			
 			$return[$user_id] = $this->send_reinvite_mail($user_id, $group_ids[ $key ]);
 			if($return[$user_id] == true ){
-				$msg .= $user_id. ", ";
+				$user_data   = get_user_by( 'id', $user_id );
+				$success_msg .=  "\n ".$user_data->first_name;
+			}
+			elseif($return[$user_id] == false ){
+				$user_data   = get_user_by( 'id', $user_id );
+				$failed_msg .= $user_data->first_name. "\n ";
 			}
 		}
-		echo json_encode( array( 'success' => "Sent successfully to: $msg") );
+		if(empty($success_msg)){
+			$success = "";
+		}
+		if(empty($failed_msg)){
+			$failed = "";
+		}
+
+		echo json_encode( array( 'success' => "$success $success_msg \n $failed $failed_msg ") );
 			die();
 	}
 
@@ -238,14 +253,17 @@ class Ldgr_Public {
 						return true;
 					}
 				} else {
-					echo json_encode( array( 'error' => __( 'Oops Something went wrong', 'wdm_ld_group' ) ) );
-					die();
+					/* echo json_encode( array( 'error' => __( 'Oops Something went wrong', 'wdm_ld_group' ) ) );
+					die(); */
+					return false;
 				}
 			} else {
-				echo json_encode( array( 'error' => __( "You don't have privilege to do this action", 'wdm_ld_group' ) ) );
+				/* echo json_encode( array( 'error' => __( "You don't have privilege to do this action", 'wdm_ld_group' ) ) ); */
+				return false;
 			}
 		} else {
-			echo json_encode( array( 'error' => __( "You don't have privilege to do this action", 'wdm_ld_group' ) ) );
+			/* echo json_encode( array( 'error' => __( "You don't have privilege to do this action", 'wdm_ld_group' ) ) ); */
+			return false;
 		}
 	}
 
