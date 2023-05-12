@@ -134,7 +134,7 @@ class Ldgr_Public {
 			}
 			elseif($return[$user_id] == false ){
 				$user_data   = get_user_by( 'id', $user_id );
-				$failed_msg .= $user_data->first_name. "\n ";
+				$failed_msg .=  "\n ".$user_data->first_name;
 			}
 		}
 		if(empty($success_msg)){
